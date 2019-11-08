@@ -1,0 +1,26 @@
+## {{ ansible_managed }}
+
+ProxyRequests Off
+ProxyPreserveHost On
+
+{% for registry in nexus_docker_registries %}
+# Docker Registry: {{ registry.name }}
+Listen {{ registry.apache_port }}
+
+<VirtualHost *:{{ registry.apache_port }}>
+
+  # Use HTTP Strict Transport Security to force client to use secure connections only
+
+  ServerName			{{ ansible_fqdn }}:{{ registry.apache_port }}
+  ProxyPass 	   /	http://localhost:{{ registry.nexus_port }}/
+  ProxyPassReverse /	http://localhost:{{ registry.nexus_port }}/
+
+  RequestHeader set X-Forwarded-Proto "https"
+
+  ErrorLog /var/log/httpd/docker-{{ registry.name|replace(' ', '_') }}-error_log
+  CustomLog /var/log/httpd/docker-{{ registry.name|replace(' ', '_') }}-access_log combined
+
+</VirtualHost>
+{% endfor %}
+
+

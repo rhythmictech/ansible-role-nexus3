@@ -1,0 +1,163 @@
+---
+# compat for amazon linux
+- set_fact: ansible_distribution_major_version=6
+  when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "NA"
+  tags: ['nexus3']
+
+- set_fact: ansible_distribution_major_version=7
+  when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "2"
+  tags: ['nexus3']
+
+- name: ensure nexus user exists
+  user:
+    name: "{{ nexus_user }}"
+    state: present
+    system: true
+  tags: ['nexus3']
+
+- name: ensure nexus parent directory exists
+  file:
+    path: "{{ nexus_base_dir }}"
+    state: directory
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
+    mode: 0750
+  tags: ['nexus3']
+
+- name: check if nexus is already installed
+  stat: path="{{ nexus_base_dir }}/nexus-{{ nexus_version }}"
+  register: nexus_found
+  tags: ['nexus3']
+
+- name: download nexus binary
+  get_url:
+    url: "{{ nexus_download_base_url }}/nexus-{{ nexus_version }}-unix.tar.gz"
+    dest: "/usr/src/nexus-{{ nexus_version }}-unix.tar.gz"
+  when: not nexus_found.stat.exists
+  tags: ['nexus3']
+
+- name: untar nexus
+  become_user: "{{ nexus_user }}"
+  unarchive:
+    src: "/usr/src/nexus-{{ nexus_version }}-unix.tar.gz"
+    dest: "{{ nexus_base_dir }}"
+    copy: no
+  when: not nexus_found.stat.exists
+  tags: ['nexus3']
+
+- name: ensure mode is correct for nexus dir
+  file:
+    path: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}"
+    mode: 0750
+  tags: ['nexus3']
+
+
+- name: create nexus symlink
+  file:
+    src: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}"
+    dest: "{{ nexus_base_dir }}/current"
+    state: link
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
+  tags: ['nexus3']
+
+- name: ensure that the repodata dir exists
+  file:
+    dest: /opt/nexus/sonatype-work
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
+    mode: 0750
+    state: directory
+  tags: ['nexus3']
+
+- name: create symlink for nexus data
+  file:
+    src: /opt/nexus/sonatype-work
+    dest: /opt/nexus/current/sonatype-work
+    state: link
+  tags: ['nexus3']
+
+- name: adjust nexus.properties to restrict to 127.0.0.1
+  lineinfile: dest=/opt/nexus/current/etc/nexus-default.properties regexp="^application-host=" line="application-host=127.0.0.1"
+
+- name: set RUN_AS_USER in nexus script
+  lineinfile:
+    dest: "{{ nexus_base_dir }}/current/bin/nexus.rc"
+    regexp: '^#'
+    line: 'run_as_user="{{ nexus_user }}"'
+    state: present
+    backrefs: yes
+  tags: ['nexus3']
+
+
+- name: set jvm heap in vmoptions
+  lineinfile:
+    dest: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus.vmoptions"
+    regexp: "^{{ item }}"
+    line: "{{ item }}{{ nexus_heap_size }}"
+  with_items:
+    - '-Xms'
+    - '-Xmx'
+  tags: ['nexus3']
+
+- name: set maxdirect memory in vmoptions
+  lineinfile:
+    dest: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus.vmoptions"
+    regexp: "^-XX:MaxDirectMemorySize="
+    line: "-XX:MaxDirectMemorySize={{ nexus_maxdirectmem }}"
+  tags: ['nexus3']
+
+- name: include nexus startup config in nexus script
+  lineinfile:
+    dest: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus"
+    line: ". {{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus.rc"
+    insertbefore: "^INSTALL4J_JAVA_PREFIX="
+  tags: ['nexus3']
+
+- name: set NEXUS_HOME in nexus script
+  lineinfile:
+    dest: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus"
+    regexp: "^NEXUS_HOME="
+    line: "NEXUS_HOME={{ nexus_base_dir }}/nexus-{{ nexus_version }}"
+  tags: ['nexus3']
+
+- name: link nexus script to sysinit
+  file:
+    src: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus"
+    dest: /etc/init.d/nexus
+    state: link
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_distribution_major_version == '6'
+  tags: ['nexus3']
+
+- name: place nexus systemd service unit
+  template:
+    src: etc.systemd.system.nexus.service.j2
+    dest: /etc/systemd/system/nexus.service
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_distribution_major_version == '7'
+  notify: 
+    - reload systemd
+    - restart nexus
+  tags: ['nexus3']
+
+- name: ensure the nexus service has started
+  service: name=nexus enabled=yes
+  tags: ['nexus3']
+
+- name: ensure the nexus apache config files are set up
+  template:
+    src: "{{ item.name }}"
+    dest: "{{ item.filename }}"
+    owner: root
+    group: root
+    mode: 0640
+  with_items:
+    - { name: etc.httpd.conf.d.nexus.conf.j2, filename: /etc/httpd/conf.d/nexus.conf }
+    - { name: etc.httpd.conf.d.nexus_docker.conf.j2, filename: /etc/httpd/conf.d/nexus_docker.conf }
+  notify: reload httpd
+  tags: ['nexus3']
