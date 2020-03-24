@@ -31,7 +31,7 @@
 
 - name: download nexus binary
   get_url:
-    url: "{{ nexus_download_base_url }}/nexus-{{ nexus_version }}-unix.tar.gz"
+    url: "{{ nexus_download_base_url }}nexus-{{ nexus_version }}-unix.tar.gz"
     dest: "/usr/src/nexus-{{ nexus_version }}-unix.tar.gz"
   when: not nexus_found.stat.exists
   tags: ['nexus3']
