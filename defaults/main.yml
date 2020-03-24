@@ -1,7 +1,7 @@
 ---
 
 nexus_user: nexus
-nexus_version: 3.19.1-01
+nexus_version: 3.21.2
 
 nexus_download_base_url: "http://download.sonatype.com/nexus/3/"
 
