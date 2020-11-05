@@ -74,6 +74,8 @@
   file:
     src: /opt/nexus/sonatype-work
     dest: /opt/nexus/current/sonatype-work
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
     state: link
   tags: ['nexus3']
 
