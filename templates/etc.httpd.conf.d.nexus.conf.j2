@@ -9,7 +9,9 @@ ProxyPreserveHost On
   # Use HTTP Strict Transport Security to force client to use secure connections only
   
   ServerName			{{ nexus_base_url }}
-  ProxyPass 	   /	http://localhost:8081{{ nexus_context_path }}
+  AllowEncodedSlashes   On
+
+  ProxyPass 	   /	http://localhost:8081{{ nexus_context_path }} nocanon
   ProxyPassReverse /	http://localhost:8081{{ nexus_context_path }}
 
   ErrorLog /var/log/httpd/error_log
