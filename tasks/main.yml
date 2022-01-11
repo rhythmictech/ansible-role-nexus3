@@ -148,7 +148,7 @@
   tags: ['nexus3']
 
 - name: ensure the nexus service has started
-  service: name=nexus enabled=yes
+  service: name=nexus enabled=yes state=started
   tags: ['nexus3']
 
 - name: ensure the nexus apache config files are set up
