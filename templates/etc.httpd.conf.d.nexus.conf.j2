@@ -11,6 +11,7 @@ ProxyPreserveHost On
   ServerName			{{ nexus_base_url }}
   AllowEncodedSlashes   On
 
+  ProxyPassMatch  ^/server-status !
   ProxyPass 	   /	http://localhost:8081{{ nexus_context_path }} nocanon
   ProxyPassReverse /	http://localhost:8081{{ nexus_context_path }}
 
