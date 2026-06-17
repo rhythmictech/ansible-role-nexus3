@@ -8,9 +8,17 @@
   when: ansible_distribution == "Amazon" and ansible_distribution_major_version == "2"
   tags: ['nexus3']
 
+- name: ensure nexus group exists
+  group:
+    name: "{{ nexus_user }}"
+    state: present
+    system: true
+  tags: ['nexus3']
+
 - name: ensure nexus user exists
   user:
     name: "{{ nexus_user }}"
+    group: "{{ nexus_user }}"
     state: present
     system: true
   tags: ['nexus3']
