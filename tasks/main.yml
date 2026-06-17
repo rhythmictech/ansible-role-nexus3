@@ -41,6 +41,7 @@
   get_url:
     url: "{{ nexus_download_base_url }}nexus-{{ nexus_version }}-unix.tar.gz"
     dest: "/usr/src/nexus-{{ nexus_version }}-unix.tar.gz"
+    mode: 0644
   when: not nexus_found.stat.exists
   tags: ['nexus3']
 
