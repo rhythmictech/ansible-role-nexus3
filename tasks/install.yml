@@ -1,0 +1,69 @@
+---
+- name: Ensure the nexus parent directory exists
+  ansible.builtin.file:
+    path: "{{ nexus_base_dir }}"
+    state: directory
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+    mode: "0750"
+
+- name: Check whether this nexus version is already installed
+  ansible.builtin.stat:
+    path: "{{ nexus_install_dir }}"
+  register: nexus_found
+
+- name: Download the nexus binary
+  ansible.builtin.get_url:
+    url: "{{ nexus_download_base_url }}nexus-{{ nexus_version }}-unix.tar.gz"
+    dest: "/usr/src/nexus-{{ nexus_version }}-unix.tar.gz"
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+    mode: "0644"
+  when: not nexus_found.stat.exists
+
+- name: Extract nexus
+  ansible.builtin.unarchive:
+    src: "/usr/src/nexus-{{ nexus_version }}-unix.tar.gz"
+    dest: "{{ nexus_base_dir }}"
+    remote_src: true
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+  when: not nexus_found.stat.exists
+
+- name: Ensure the nexus install tree is owned by the nexus user
+  ansible.builtin.file:
+    path: "{{ nexus_install_dir }}"
+    state: directory
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+    recurse: true
+
+- name: Ensure the nexus install directory mode is correct
+  ansible.builtin.file:
+    path: "{{ nexus_install_dir }}"
+    state: directory
+    mode: "0750"
+
+- name: Create the nexus 'current' symlink
+  ansible.builtin.file:
+    src: "{{ nexus_install_dir }}"
+    dest: "{{ nexus_base_dir }}/current"
+    state: link
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+
+- name: Ensure the sonatype-work data directory exists
+  ansible.builtin.file:
+    path: "{{ nexus_data_dir }}"
+    state: directory
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+    mode: "0750"
+
+- name: Create the sonatype-work symlink
+  ansible.builtin.file:
+    src: "{{ nexus_data_dir }}"
+    dest: "{{ nexus_base_dir }}/current/sonatype-work"
+    state: link
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"

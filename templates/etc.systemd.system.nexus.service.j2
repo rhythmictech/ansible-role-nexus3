@@ -1,13 +1,16 @@
+## {{ ansible_managed }}
+
 [Unit]
-Description=nexus service
+Description=Sonatype Nexus 3
 After=network.target
 
 [Service]
-LimitNOFILE=65536
 Type=forking
-ExecStart={{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus start
-ExecStop={{ nexus_base_dir }}/nexus-{{ nexus_version }}/bin/nexus stop
+LimitNOFILE=65536
+ExecStart={{ nexus_install_dir }}/bin/nexus start
+ExecStop={{ nexus_install_dir }}/bin/nexus stop
 User={{ nexus_user }}
+Group={{ nexus_group }}
 Restart=on-abort
 
 [Install]

@@ -1,10 +1,14 @@
 ---
-
 - name: reload systemd
-  command: systemctl daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
 
 - name: reload httpd
-  service: name=httpd state=reloaded
+  ansible.builtin.service:
+    name: httpd
+    state: reloaded
 
 - name: restart nexus
-  service: name=nexus state=restarted
+  ansible.builtin.service:
+    name: nexus
+    state: restarted

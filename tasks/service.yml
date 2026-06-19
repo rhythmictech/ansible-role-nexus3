@@ -1,0 +1,28 @@
+---
+- name: Link the nexus script into init.d (non-systemd hosts)
+  ansible.builtin.file:
+    src: "{{ nexus_install_dir }}/bin/nexus"
+    dest: /etc/init.d/nexus
+    state: link
+    owner: root
+    group: root
+    mode: "0755"
+  when: ansible_service_mgr != 'systemd'
+
+- name: Install the nexus systemd unit
+  ansible.builtin.template:
+    src: etc.systemd.system.nexus.service.j2
+    dest: /etc/systemd/system/nexus.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_service_mgr == 'systemd'
+  notify:
+    - reload systemd
+    - restart nexus
+
+- name: Ensure the nexus service is started and enabled
+  ansible.builtin.service:
+    name: nexus
+    enabled: true
+    state: started

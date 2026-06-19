@@ -1,0 +1,53 @@
+---
+- name: Set the nexus listen address
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_base_dir }}/current/etc/nexus-default.properties"
+    regexp: "^application-host="
+    line: "application-host={{ nexus_application_host }}"
+  notify: restart nexus
+
+- name: Set the nexus listen port
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_base_dir }}/current/etc/nexus-default.properties"
+    regexp: "^application-port="
+    line: "application-port={{ nexus_application_port }}"
+  notify: restart nexus
+
+- name: Set run_as_user in nexus.rc
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_install_dir }}/bin/nexus.rc"
+    regexp: '^#?\s*run_as_user='
+    line: 'run_as_user="{{ nexus_user }}"'
+    state: present
+  notify: restart nexus
+
+- name: Set the JVM heap size in nexus.vmoptions
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_install_dir }}/bin/nexus.vmoptions"
+    regexp: "^{{ item }}"
+    line: "{{ item }}{{ nexus_heap_size }}"
+  loop:
+    - '-Xms'
+    - '-Xmx'
+  notify: restart nexus
+
+- name: Set the max direct memory in nexus.vmoptions
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_install_dir }}/bin/nexus.vmoptions"
+    regexp: "^-XX:MaxDirectMemorySize="
+    line: "-XX:MaxDirectMemorySize={{ nexus_maxdirectmem }}"
+  notify: restart nexus
+
+- name: Source nexus.rc from the nexus startup script
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_install_dir }}/bin/nexus"
+    line: ". {{ nexus_install_dir }}/bin/nexus.rc"
+    insertbefore: "^INSTALL4J_JAVA_PREFIX="
+  notify: restart nexus
+
+- name: Set NEXUS_HOME in the nexus startup script
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_install_dir }}/bin/nexus"
+    regexp: "^NEXUS_HOME="
+    line: "NEXUS_HOME={{ nexus_install_dir }}"
+  notify: restart nexus

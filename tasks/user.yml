@@ -1,0 +1,17 @@
+---
+- name: Ensure the nexus group exists
+  ansible.builtin.group:
+    name: "{{ nexus_group }}"
+    gid: "{{ nexus_gid | default(omit, true) }}"
+    system: true
+    state: present
+
+- name: Ensure the nexus user exists
+  ansible.builtin.user:
+    name: "{{ nexus_user }}"
+    uid: "{{ nexus_uid | default(omit, true) }}"
+    group: "{{ nexus_group }}"
+    system: true
+    create_home: false
+    shell: /sbin/nologin
+    state: present

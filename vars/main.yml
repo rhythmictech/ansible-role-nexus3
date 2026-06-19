@@ -1,0 +1,4 @@
+---
+# Derived paths (not intended to be overridden).
+nexus_install_dir: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}"
+nexus_data_dir: "{{ nexus_base_dir }}/sonatype-work"

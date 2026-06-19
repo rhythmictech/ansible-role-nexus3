@@ -1,14 +1,28 @@
 ---
-
+# Service account
 nexus_user: nexus
+nexus_group: "{{ nexus_user }}"
+# Optionally pin the UID/GID. Leave unset to let the OS allocate them.
+nexus_uid: ~
+nexus_gid: ~
+
+# Nexus release
 nexus_version: 3.21.2-03
+nexus_download_base_url: "https://download.sonatype.com/nexus/3/"
+nexus_base_dir: /opt/nexus
 
-nexus_download_base_url: "http://download.sonatype.com/nexus/3/"
-
-nexus_base_dir: '/opt/nexus'
-
+# Web context
 nexus_base_url:
 nexus_context_path: /
+nexus_application_port: 8081
+# Listen on localhost only when fronted by Apache, otherwise all interfaces.
+nexus_application_host: "{{ '127.0.0.1' if (nexus_use_apache | bool) else '0.0.0.0' }}"
 
-nexus_heap_size: '1200M'
-nexus_maxdirectmem: '2G'
+# JVM tuning
+nexus_heap_size: 1200M
+nexus_maxdirectmem: 2G
+
+# Front Nexus with an Apache (httpd) reverse proxy.
+nexus_use_apache: true
+# Docker registry reverse-proxy vhosts (only used when nexus_use_apache is true).
+nexus_docker_registries: []
