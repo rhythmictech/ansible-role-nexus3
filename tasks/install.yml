@@ -54,11 +54,16 @@
 
 - name: Ensure the sonatype-work data directory exists
   ansible.builtin.file:
-    path: "{{ nexus_data_dir }}"
+    path: "{{ item }}"
     state: directory
     owner: "{{ nexus_user }}"
     group: "{{ nexus_group }}"
     mode: "0750"
+  loop:
+    - "{{ nexus_data_dir }}"
+    - "{{ nexus_data_dir }}/nexus3"
+    - "{{ nexus_data_dir }}/nexus3/log"
+    - "{{ nexus_data_dir }}/nexus3/tmp"
 
 - name: Create the sonatype-work symlink
   ansible.builtin.file:
