@@ -1,0 +1,14 @@
+---
+- name: Install the nexus Apache reverse-proxy config
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0640"
+  loop:
+    - src: etc.httpd.conf.d.nexus.conf.j2
+      dest: /etc/httpd/conf.d/nexus.conf
+    - src: etc.httpd.conf.d.nexus_docker.conf.j2
+      dest: /etc/httpd/conf.d/nexus_docker.conf
+  notify: reload httpd

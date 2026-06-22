@@ -1,0 +1,8 @@
+## {{ ansible_managed }}
+# Nexus 3 property overrides ($data-dir/etc/nexus.properties).
+# Customizations belong here -- nexus-default.properties is upgrade-managed
+# and must not be edited.
+
+application-host={{ nexus_application_host }}
+application-port={{ nexus_application_port }}
+nexus-context-path={{ nexus_context_path }}

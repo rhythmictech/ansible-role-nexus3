@@ -12,8 +12,8 @@ ProxyPreserveHost On
   AllowEncodedSlashes   On
 
   ProxyPassMatch  ^/server-status !
-  ProxyPass 	   /	http://localhost:8081{{ nexus_context_path }} nocanon
-  ProxyPassReverse /	http://localhost:8081{{ nexus_context_path }}
+  ProxyPass 	   /	http://localhost:{{ nexus_application_port }}{{ nexus_context_path }} nocanon
+  ProxyPassReverse /	http://localhost:{{ nexus_application_port }}{{ nexus_context_path }}
 
   ErrorLog /var/log/httpd/error_log
   CustomLog /var/log/httpd/access_log json
