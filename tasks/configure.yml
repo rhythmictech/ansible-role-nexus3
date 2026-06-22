@@ -1,16 +1,22 @@
 ---
-- name: Set the nexus listen address
-  ansible.builtin.lineinfile:
-    path: "{{ nexus_base_dir }}/current/etc/nexus-default.properties"
-    regexp: "^application-host="
-    line: "application-host={{ nexus_application_host }}"
-  notify: restart nexus
+- name: Ensure the nexus data-dir etc directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+    mode: "0750"
+  loop:
+    - "{{ nexus_data_dir }}/nexus3"
+    - "{{ nexus_etc_dir }}"
 
-- name: Set the nexus listen port
-  ansible.builtin.lineinfile:
-    path: "{{ nexus_base_dir }}/current/etc/nexus-default.properties"
-    regexp: "^application-port="
-    line: "application-port={{ nexus_application_port }}"
+- name: Configure nexus property overrides
+  ansible.builtin.template:
+    src: nexus.properties.j2
+    dest: "{{ nexus_properties_file }}"
+    owner: "{{ nexus_user }}"
+    group: "{{ nexus_group }}"
+    mode: "0640"
   notify: restart nexus
 
 - name: Set run_as_user in nexus.rc

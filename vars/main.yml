@@ -2,3 +2,7 @@
 # Derived paths (not intended to be overridden).
 nexus_install_dir: "{{ nexus_base_dir }}/nexus-{{ nexus_version }}"
 nexus_data_dir: "{{ nexus_base_dir }}/sonatype-work"
+# Nexus 3 data directory and its property-override file. Customizations
+# belong here, NOT in nexus-default.properties (DO NOT EDIT / upgrade-managed).
+nexus_etc_dir: "{{ nexus_data_dir }}/nexus3/etc"
+nexus_properties_file: "{{ nexus_etc_dir }}/nexus.properties"
